@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Spam Detector | Modern Security</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --spam-bg: #fee2e2;
+            --spam-text: #991b1b;
+            --ham-bg: #dcfce7;
+            --ham-text: #166534;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .app-container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 550px;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transition: transform 0.3s ease;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.025em;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            margin-top: 8px;
+            font-size: 0.95rem;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-main);
+            font-size: 0.875rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+            resize: none;
+            background-color: #f9fafb;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        #resultContainer {
+            margin-top: 24px;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-title {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+
+        .result-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .spam {
+            background-color: var(--spam-bg);
+            color: var(--spam-text);
+        }
+
+        .ham {
+            background-color: var(--ham-bg);
+            color: var(--ham-text);
+        }
+
+        .loader {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        footer {
+            margin-top: 32px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo-icon"><i class="fas fa-shield-halved"></i></div>
+            <h1>Spam Detector AI</h1>
+            <p class="subtitle">Enter email content below to analyze for spam</p>
+        </header>
+
+        <div class="input-group">
+            <label for="emailContent">Email Message</label>
+            <textarea id="emailContent" placeholder="Paste the email text here... e.g., 'Congratulations! You won a prize!'"></textarea>
+        </div>
+
+        <button id="analyzeBtn" onclick="checkSpam()">
+            <span id="btnText">Analyze Message</span>
+            <div id="btnLoader" class="loader"></div>
+        </button>
+
+        <div id="resultContainer">
+            <div class="result-title">Analysis Result</div>
+            <div id="resultValue" class="result-value"></div>
+        </div>
+
+        <footer>
+            <p>&copy; 2026 AI Security Lab | Powered by Machine Learning</p>
+        </footer>
+    </div>
+
+    <script>
+        async function checkSpam() {
+            const emailContent = document.getElementById('emailContent').value;
+            const resultContainer = document.getElementById('resultContainer');
+            const resultValue = document.getElementById('resultValue');
+            const btn = document.getElementById('analyzeBtn');
+            const btnText = document.getElementById('btnText');
+            const btnLoader = document.getElementById('btnLoader');
+            
+            if (!emailContent.trim()) {
+                alert('Please enter some email content to analyze.');
+                return;
+            }
+
+            // Set loading state
+            btn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'block';
+            resultContainer.style.display = 'none';
+
+            try {
+                // Simulate a slight delay for better UX
+                await new Promise(resolve => setTimeout(resolve, 600));
+
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: emailContent })
+                });
+
+                const data = await response.json();
+                
+                resultContainer.style.display = 'block';
+                resultValue.innerText = data.result;
+                
+                if (data.result === 'Spam') {
+                    resultContainer.className = 'spam';
+                    resultValue.innerHTML = '<i class="fas fa-circle-exclamation"></i> ' + data.result;
+                } else {
+                    resultContainer.className = 'ham';
+                    resultValue.innerHTML = '<i class="fas fa-circle-check"></i> ' + data.result;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Is the server running?');
+            } finally {
+                // Reset button state
+                btn.disabled = false;
+                btnText.style.display = 'block';
+                btnLoader.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
